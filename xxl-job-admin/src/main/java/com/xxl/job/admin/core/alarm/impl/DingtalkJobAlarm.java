@@ -2,13 +2,18 @@ package com.xxl.job.admin.core.alarm.impl;
 
 import com.dianping.cat.Cat;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.leqee.boot.autoconfiguration.common.EnvUtil;
 import com.leqee.boot.autoconfiguration.common.SupportedEnv;
 import com.xxl.job.admin.core.alarm.JobAlarm;
 import com.xxl.job.admin.core.model.XxlJobInfo;
 import com.xxl.job.admin.core.model.XxlJobLog;
 import com.xxl.job.core.biz.model.ReturnT;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -18,7 +23,7 @@ import org.springframework.web.client.RestTemplate;
  * 新添钉钉告警；
  */
 @Component
-public class DingtalkJobAlarm implements JobAlarm {
+public class DingtalkJobAlarm implements JobAlarm, SmartInitializingSingleton {
 
     @Autowired
     private RestTemplate restTemplate;
@@ -26,6 +31,12 @@ public class DingtalkJobAlarm implements JobAlarm {
     private static final String DINGTALK_BOT_URL = System.getProperty("dingtalk.bot.url", "");
 
     private static final String DINGTALK_MSG_JSON_TPL = "{\"msgtype\": \"text\",\"text\": {\"content\": \"【定时任务告警】%s\"}}";
+
+    private static final HttpHeaders HTTP_HEADERS = new HttpHeaders();
+
+    static {
+        HTTP_HEADERS.setContentType(MediaType.APPLICATION_JSON);
+    }
 
     @Override
     public boolean doAlarm(XxlJobInfo info, XxlJobLog jobLog) {
@@ -38,7 +49,7 @@ public class DingtalkJobAlarm implements JobAlarm {
         SupportedEnv supportedEnv = EnvUtil.getSupportedEnv();
 
         // alarmContent
-        String alarmContent = "Alarm Job LogId=" + jobLog.getId();
+        String alarmContent = String.format("定时任务失败：%d:%s", info.getId(), info.getJobDesc());
         if (jobLog.getTriggerCode() != ReturnT.SUCCESS_CODE) {
             alarmContent += ("\nTriggerMsg=" + jobLog.getTriggerMsg());
         }
@@ -49,12 +60,20 @@ public class DingtalkJobAlarm implements JobAlarm {
 
         alarmContent = String.format(DINGTALK_MSG_JSON_TPL, alarmContent);
 
-        JsonObject responseJson = restTemplate.postForObject(DINGTALK_BOT_URL, alarmContent, JsonObject.class);
+        HttpEntity<String> entity = new HttpEntity<>(alarmContent, HTTP_HEADERS);
+        String response = restTemplate.postForObject(DINGTALK_BOT_URL, entity, String.class);
+
+        JsonObject responseJson = JsonParser.parseString(response).getAsJsonObject();
         if (null != responseJson && responseJson.has("errcode")) {
             return responseJson.get("errcode").getAsInt() == 0;
         }
-        Cat.logError("Unable to send dingtalk message:" + alarmContent + ",\nresponse:" + responseJson
+        Cat.logError("Unable to send dingtalk message:" + alarmContent + ",\nresponse:" + response
                 , new Exception());
         return false;
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
+
     }
 }
