@@ -1,6 +1,7 @@
 package com.xxl.job.admin;
 
 import com.leqee.boot.autoconfiguration.annotation.EnableCat;
+import com.leqee.boot.autoconfiguration.apollo.EnableApollo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @SpringBootApplication
 @EnableCat
+@EnableApollo
 public class XxlJobAdminApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(XxlJobAdminApplication.class);
