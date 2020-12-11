@@ -1,6 +1,7 @@
 package com.xxl.job.admin.core.alarm.impl;
 
 import com.dianping.cat.Cat;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.leqee.boot.autoconfiguration.common.EnvUtil;
@@ -18,6 +19,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author: derrick.tangp
  * 新添钉钉告警；
@@ -25,12 +29,12 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class DingtalkJobAlarm implements JobAlarm, SmartInitializingSingleton {
 
+    private static final Gson GSON = new Gson();
+
     @Autowired
     private RestTemplate restTemplate;
 
     private static final String DINGTALK_BOT_URL = System.getProperty("dingtalk.bot.url", "");
-
-    private static final String DINGTALK_MSG_JSON_TPL = "{\"msgtype\": \"text\",\"text\": {\"content\": \"【定时任务告警】%s\"}}";
 
     private static final HttpHeaders HTTP_HEADERS = new HttpHeaders();
 
@@ -58,7 +62,7 @@ public class DingtalkJobAlarm implements JobAlarm, SmartInitializingSingleton {
         }
         alarmContent += ("\n\n环境：" + supportedEnv);
 
-        alarmContent = String.format(DINGTALK_MSG_JSON_TPL, alarmContent);
+        alarmContent = new DingtalkContent(alarmContent).toString();
 
         HttpEntity<String> entity = new HttpEntity<>(alarmContent, HTTP_HEADERS);
         String response = restTemplate.postForObject(DINGTALK_BOT_URL, entity, String.class);
@@ -75,5 +79,31 @@ public class DingtalkJobAlarm implements JobAlarm, SmartInitializingSingleton {
     @Override
     public void afterSingletonsInstantiated() {
 
+    }
+
+    private static final String MSG_FORMATTER = "【定时任务告警】%s";
+
+    public static class DingtalkContent {
+        private final String msgtype = "text";
+        private final Map<String, String> text = new HashMap<>();
+
+        public DingtalkContent(String msg) {
+            msg = msg.replaceAll("<br>", "\n");
+            msg = msg.replaceAll("<[^>]*>", "");
+            text.put("content", String.format(MSG_FORMATTER, msg));
+        }
+
+        public String getMsgtype() {
+            return msgtype;
+        }
+
+        public Map<String, String> getText() {
+            return text;
+        }
+
+        @Override
+        public String toString() {
+            return GSON.toJson(this);
+        }
     }
 }

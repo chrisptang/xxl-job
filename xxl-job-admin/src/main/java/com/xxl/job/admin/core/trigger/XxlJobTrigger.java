@@ -154,7 +154,7 @@ public class XxlJobTrigger {
                 }
             }
         } else {
-            routeAddressResult = new ReturnT<String>(ReturnT.FAIL_CODE, I18nUtil.getString("jobconf_trigger_address_empty"));
+            routeAddressResult = new ReturnT(ReturnT.FAIL_CODE, I18nUtil.getString("jobconf_trigger_address_empty"));
         }
 
         // 4、trigger remote executor
@@ -162,7 +162,11 @@ public class XxlJobTrigger {
         if (address != null) {
             triggerResult = runExecutor(triggerParam, address);
         } else {
-            triggerResult = new ReturnT<String>(ReturnT.FAIL_CODE, null);
+            triggerResult = new ReturnT(ReturnT.FAIL_CODE, I18nUtil.getString("jobconf_trigger_address_empty"));
+            Transaction transaction = Cat.newTransaction("XxlJobTrigger"
+                    , triggerParam.getJobId() + ":" + triggerParam.getExecutorHandler());
+            transaction.setStatus(new Exception(triggerResult.getMsg()));
+            transaction.complete();
         }
 
         // 5、collection trigger info
@@ -206,7 +210,7 @@ public class XxlJobTrigger {
      */
     public static ReturnT<String> runExecutor(TriggerParam triggerParam, String address) {
         ReturnT<String> runResult = null;
-        Transaction catTransaction = Cat.newTransaction("XXL-JOB",
+        Transaction catTransaction = Cat.newTransaction("XxlJob",
                 triggerParam.getJobId() + ":" + triggerParam.getExecutorHandler());
         try {
             ExecutorBiz executorBiz = XxlJobScheduler.getExecutorBiz(address);
