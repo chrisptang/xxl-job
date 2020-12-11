@@ -19,11 +19,11 @@ import java.util.regex.Pattern;
 public class IpUtil {
     private static final Logger logger = LoggerFactory.getLogger(IpUtil.class);
 
-    private static final String ANYHOST_VALUE = "0.0.0.0";
+    private static final String ANY_HOST_VALUE = "0.0.0.0";
     private static final String LOCALHOST_VALUE = "127.0.0.1";
     private static final Pattern IP_PATTERN = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3,5}$");
 
-
+    private static volatile String HOST_IP_CACHE = null;
 
     private static volatile InetAddress LOCAL_ADDRESS = null;
 
@@ -59,7 +59,7 @@ public class IpUtil {
         String name = address.getHostAddress();
         boolean result = (name != null
                 && IP_PATTERN.matcher(name).matches()
-                && !ANYHOST_VALUE.equals(name)
+                && !ANY_HOST_VALUE.equals(name)
                 && !LOCALHOST_VALUE.equals(name));
         return result;
     }
@@ -125,7 +125,7 @@ public class IpUtil {
                             InetAddress addressItem = toValidAddress(addresses.nextElement());
                             if (addressItem != null) {
                                 try {
-                                    if(addressItem.isReachable(100)){
+                                    if (addressItem.isReachable(100)) {
                                         return addressItem;
                                     }
                                 } catch (IOException e) {
@@ -168,8 +168,19 @@ public class IpUtil {
      *
      * @return String
      */
-    public static String getIp(){
-        return getLocalAddress().getHostAddress();
+    public static String getIp() {
+        if (null != HOST_IP_CACHE) {
+            return HOST_IP_CACHE;
+        }
+        String hostIp = System.getenv("SERVER_IP");
+        if (hostIp == null || hostIp.trim().length() <= 1) {
+            hostIp = System.getProperty("host.ip", "");
+        }
+        if (hostIp == null || hostIp.trim().length() <= 1) {
+            return HOST_IP_CACHE = getLocalAddress().getHostAddress();
+        } else {
+            return HOST_IP_CACHE = hostIp;
+        }
     }
 
     /**
@@ -178,19 +189,19 @@ public class IpUtil {
      * @param port
      * @return String
      */
-    public static String getIpPort(int port){
+    public static String getIpPort(int port) {
         String ip = getIp();
         return getIpPort(ip, port);
     }
 
-    public static String getIpPort(String ip, int port){
-        if (ip==null) {
+    public static String getIpPort(String ip, int port) {
+        if (ip == null) {
             return null;
         }
         return ip.concat(":").concat(String.valueOf(port));
     }
 
-    public static Object[] parseIpPort(String address){
+    public static Object[] parseIpPort(String address) {
         String[] array = address.split(":");
 
         String host = array[0];
