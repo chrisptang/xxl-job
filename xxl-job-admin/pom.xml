@@ -23,6 +23,12 @@
 
 	<dependencies>
 
+		<dependency>
+			<groupId>com.miniso.boot</groupId>
+			<artifactId>miniso-boot-autoconfiguration</artifactId>
+			<version>1.3.0-SNAPSHOT</version>
+		</dependency>
+
 		<!-- starter-web：spring-webmvc + autoconfigure + logback + yaml + tomcat -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
