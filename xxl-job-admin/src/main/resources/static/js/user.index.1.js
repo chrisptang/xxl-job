@@ -51,6 +51,18 @@ $(function() {
                             }
                         }
 					},
+                    {
+                        "data": 'type',
+                        "visible" : true,
+                        "width":'10%',
+                        "render": function ( data, type, row ) {
+                             if (data == -1) {
+                                 return I18n.user_type_removed
+                             } else {
+                                 return I18n.user_type_normal
+                             }
+                         }
+                    },
 	                {
 	                	"data": 'permission',
 						"width":'10%',
@@ -62,12 +74,19 @@ $(function() {
 	                	"render": function ( data, type, row ) {
 	                		return function(){
 								// html
-                                tableData['key'+row.id] = row;
-								var html = '<p id="'+ row.id +'" >'+
-									'<button class="btn btn-warning btn-xs update" type="button">'+ I18n.system_opt_edit +'</button>  '+
-									'<button class="btn btn-danger btn-xs delete" type="button">'+ I18n.system_opt_del +'</button>  '+
-									'</p>';
 
+                                tableData['key'+row.id] = row;
+                                if(row.type === -1){
+                                    return '<button class="btn btn-secondary btn-xs update" type="button" disabled>'+ I18n.system_opt_disabled +'</button>';
+    							}
+								var html = '<p id="'+ row.id +'" >';
+								if(row.type === -1){
+                                    html += '<button class="btn btn-secondary btn-xs update" type="button" disabled>'+ I18n.system_opt_disabled +'</button>';
+                                }else{
+                                    html +='<button class="btn btn-warning btn-xs update" type="button">'+ I18n.system_opt_edit +'</button>  ';
+                                    html +='<button class="btn btn-danger btn-xs delete" type="button">'+ I18n.system_opt_del +'</button>  ';
+                                }
+								html +=	'</p>';
 	                			return html;
 							};
 	                	}

@@ -60,6 +60,7 @@
                                         <th name="username" >${I18n.user_username}</th>
 					                  	<th name="password" >${I18n.user_password}</th>
                                         <th name="role" >${I18n.user_role}</th>
+                                        <th name="type" >${I18n.user_type}</th>
 					                  	<th name="permission" >${I18n.user_permission}</th>
 					                  	<th>${I18n.system_opt}</th>
 					                </tr>
