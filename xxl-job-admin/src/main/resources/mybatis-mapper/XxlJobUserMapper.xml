@@ -9,6 +9,9 @@
 	    <result column="password" property="password" />
 	    <result column="role" property="role" />
 	    <result column="permission" property="permission" />
+		<result column="type" property="type" />
+		<result column="created_time" property="createdTime" />
+		<result column="modified_time" property="modifiedTime" />
 	</resultMap>
 
 	<sql id="Base_Column_List">
@@ -16,7 +19,7 @@
 		t.username,
 		t.password,
 		t.role,
-		t.permission
+		t.permission,t.created_time,t.modified_time,t.type
 	</sql>
 
 	<select id="pageList" parameterType="java.util.HashMap" resultMap="XxlJobUser">
@@ -58,12 +61,14 @@
 			username,
 			password,
 			role,
-			permission
+			permission,
+			type,created_time,modified_time
 		) VALUES (
 			#{username},
 			#{password},
 			#{role},
-			#{permission}
+			#{permission},
+			#{type},now(),now()
 		);
 	</insert>
 
@@ -73,14 +78,16 @@
 			<if test="password != null and password != ''">
 				password = #{password},
 			</if>
+			<if test="type != null">
+				type = #{type},
+			</if>
 			role = #{role},
-			permission = #{permission}
+			permission = #{permission},modified_time=now()
 		WHERE id = #{id}
 	</update>
 
 	<delete id="delete" parameterType="java.util.HashMap">
-		DELETE
-		FROM xxl_job_user
+		UPDATE xxl_job_user set type=-1
 		WHERE id = #{id}
 	</delete>
 

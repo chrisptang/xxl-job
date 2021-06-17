@@ -203,7 +203,7 @@ $(function() {
 			},
 			title : {
 				required : true,
-				rangelength:[4, 12]
+				rangelength:[4, 128]
 			}
 		},
 		messages : {
@@ -300,7 +300,7 @@ $(function() {
 			},
 			title : {
 				required : true,
-				rangelength:[4, 64]
+				rangelength:[4, 128]
 			}
 		},
 		messages : {
